@@ -75,9 +75,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const content = extractEmailContent();
         if (content) {
             sendEmailToAPI(content);
+            sendResponse({ status: "scanning" }); // Send response immediately
         } else {
             chrome.runtime.sendMessage({ type: "phishing_result", result: { prediction: "Error", message: "ไม่สามารถแยกเนื้อหาอีเมลได้จากหน้าเว็บปัจจุบัน." } });
+            sendResponse({ status: "error", message: "No email content found" });
         }
-        return true; 
+        return false; // Don't keep message channel open
     }
 });

@@ -9,7 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
         resetResult();
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
-                chrome.tabs.sendMessage(tabs[0].id, { type: "scan_email" });
+                chrome.tabs.sendMessage(tabs[0].id, { type: "scan_email" }, (response) => {
+                    // Handle response or ignore if no response needed
+                    if (chrome.runtime.lastError) {
+                        console.log("Message sending error:", chrome.runtime.lastError.message);
+                        resultDiv.textContent = "Extension error: " + chrome.runtime.lastError.message;
+                        resultDiv.className = 'error';
+                    }
+                });
             } else {
                 resultDiv.textContent = "No active tab found or insufficient permissions.";
                 resultDiv.className = 'error';
