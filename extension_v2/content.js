@@ -36,7 +36,7 @@ async function sendEmailToAPI(emailContent) {
         return;
     }
 
-const API_URL = "http://127.0.0.1:5000/predict_phishing"; 
+const API_URL = "https://web-production-a4be2.up.railway.app/predict_phishing"; 
 
     try {
         const response = await fetch(API_URL, {
