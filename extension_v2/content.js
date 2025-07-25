@@ -39,6 +39,9 @@ async function sendEmailToAPI(emailContent) {
 const API_URL = "https://web-production-a4be2.up.railway.app/predict_phishing"; 
 
     try {
+        console.log("Sending request to:", API_URL);
+        console.log("Email content:", emailContent.substring(0, 100) + "...");
+        
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -47,8 +50,12 @@ const API_URL = "https://web-production-a4be2.up.railway.app/predict_phishing";
             body: JSON.stringify({ email_content: emailContent })
         });
 
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+
         if (!response.ok) {
             const errorDetail = await response.text().catch(() => "Unknown error message.");
+            console.error("API Error Detail:", errorDetail);
             throw new Error(`HTTP Error! Status: ${response.status}. Detail: ${errorDetail}`);
         }
 
