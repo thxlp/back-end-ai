@@ -10,7 +10,13 @@ import os
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": ["*"],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
