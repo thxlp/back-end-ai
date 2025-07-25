@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Phishing Detector",
-  "version": "1.2",
-  "description": "Scans email content for phishing indicators using a custom AI model.",
+  "name": "Phishing Detector Pro",
+  "version": "2.0", 
+  "description": "AI-powered phishing email detector for Gmail, Outlook, and Yahoo Mail. Real-time protection with risk assessment.",
   "permissions": [
     "activeTab",  
     "scripting", 
