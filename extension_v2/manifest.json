@@ -20,17 +20,17 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "extenicon.jpg",
-      "32": "extenicon.jpg", 
-      "48": "extenicon.jpg",
-      "128": "extenicon.jpg"
+      "16": "icon.jpg",
+      "32": "icon.jpg", 
+      "48": "icon.jpg",
+      "128": "icon.jpg"
     }
   },
   "icons": {
-    "16": "extenicon.jpg",
-    "32": "extenicon.jpg",
-    "48": "extenicon.jpg", 
-    "128": "extenicon.jpg"
+    "16": "icon.jpg",
+    "32": "icon.jpg",
+    "48": "icon.jpg", 
+    "128": "icon.jpg"
   },
   "content_scripts": [
     {
