@@ -1,126 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Phishing Detector</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Phishing Detector Pro</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            width: 320px;
-            padding: 22px 16px 12px 16px;
-            margin: 0;
-            background: linear-gradient(135deg, #f8fbff 60%, #e3e9f7 100%);
-            color: #23272f;
-            border-radius: 18px;
-            box-sizing: border-box;
-            box-shadow: 0 6px 32px rgba(60, 120, 200, 0.10);
+        :root{
+            --bg1:#f8fbff; --bg2:#eef4ff; --brand1:#1e63b8; --accent:#2b8fbf; --danger:#c62828; --safe:#087c63;
+            --card:#ffffff; --muted:#6b7280;
         }
+        html,body{margin:0;padding:0}
+        body{
+            font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            width:360px; box-sizing:border-box; padding:18px; background:linear-gradient(135deg,var(--bg1) 40%,var(--bg2) 100%);
+            color:#111827;
+        }
+        .header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+        .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,var(--brand1),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+        h1{font-size:1.05rem;margin:0}
+        .subtitle{font-size:0.82rem;color:var(--muted)}
 
-        h2 {
-            font-size: 1.5em;
-            color: #1a237e;
-            margin-top: 0;
-            margin-bottom: 22px;
-            text-align: center;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #1976d2;
-            letter-spacing: 1.5px;
-            font-weight: 700;
+        #scanBtn{
+            display:block;width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--brand1),var(--accent));color:#fff;font-weight:600;cursor:pointer;margin-top:8px;
+            box-shadow:0 6px 18px rgba(37,99,235,0.12);
         }
+        #scanBtn:disabled{opacity:0.6;cursor:not-allowed}
 
-        button {
-            background: linear-gradient(90deg, #4766a3 0%, #3582a5 100%);
-            color: #fff;
-            border: none;
-            border-radius: 9px;
-            padding: 10px 0;
-            width: 100%;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: background 0.3s, transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.10);
-            margin-bottom: 14px;
-        }
+        .status{margin-top:10px;font-size:0.9rem;color:var(--muted);display:flex;align-items:center;gap:8px}
+        .spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(0,0,0,0.08);border-top-color:var(--brand1);animation:spin .9s linear infinite;opacity:0}
+        @keyframes spin{to{transform:rotate(360deg)}}
 
-        button:hover {
-            background: linear-gradient(90deg, #3752ad 0%, #5750b9 100%);
-            transform: translateY(-2px) scale(1.04);
-            box-shadow: 0 6px 18px rgba(33, 150, 243, 0.18);
-        }
+        .card{background:var(--card);border-radius:10px;padding:12px;margin-top:12px;box-shadow:0 8px 30px rgba(2,6,23,0.06);min-height:56px}
+        .pred{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700}
+        .pred.phishing{background:#ffebee;color:var(--danger);border:1px solid rgba(198,40,40,0.12)}
+        .pred.safe{background:#f0fdf4;color:var(--safe);border:1px solid rgba(7,124,99,0.08)}
+        .small{font-size:0.85rem;color:var(--muted)}
 
-        button:active {
-            transform: translateY(0);
-        }
+        .controls{display:flex;gap:8px;margin-top:10px}
+        .btn-ghost{flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef9;background:transparent;color:var(--brand1);cursor:pointer}
 
-        #result {
-            margin-top: 0;
-            padding: 12px 10px 10px 10px;
-            border-radius: 10px;
-            font-weight: 500;
-            text-align: left;
-            background: #fff;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.08);
-            min-height: 40px;
-            display: block;
-            font-size: 0.98em;
-            border: none;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
-        }
-
-        .result-box {
-            white-space: pre-line;
-        }
-
-        .phishing {
-            background-color: #ffdde0;
-            color: #b71c1c;
-            border: 2px solid #b71c1c;
-        }
-
-        .not-phishing {
-            background-color: #d0f5dd;
-            color: #087c63;
-            border: 2px solid #087c63;
-        }
-
-        .error {
-            background-color: #fff8e1;
-            color: #ff9800;
-            border: 1.5px solid #ff9800;
-        }
-
-        .result-default {
-            background-color: #f3f4f6;
-            color: #374151;
-            border: 1px dashed #cbd5e1;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .footer {
-            margin-top: 18px;
-            font-size: 0.85em;
-            text-align: center;
-            color: #7a7a7a;
-            letter-spacing: 0.1px;
-        }
+        .footer{margin-top:14px;font-size:0.78rem;color:var(--muted);text-align:center}
+        pre#raw{max-height:120px;overflow:auto;background:#f8fafc;padding:8px;border-radius:6px;border:1px solid #eef2ff;font-size:0.8rem}
     </style>
 </head>
 <body>
-    <h2><span style="letter-spacing:1px;">Phishing Detector</span></h2>
-    <button id="scanButton">Scan current email</button>
-    <div id="result" class="result-box result-default">Awaiting scan...</div>
-    <div class="footer">
-        <span style="font-size:1.08em; color:#0056b3; font-weight:600;">AI Protection</span> &middot;
-        <span style="font-size:0.97em;">Stay safe online</span>
+    <div class="header">
+        <div class="logo">FD</div>
+        <div>
+            <h1>Phishing Detector Pro</h1>
+            <div class="subtitle">AI-assisted phishing check for webmail</div>
+        </div>
     </div>
+
+    <button id="scanBtn">Scan current email</button>
+
+    <div class="status"><div id="spinner" class="spinner" aria-hidden="true"></div><div id="statusText" class="small">Ready</div></div>
+
+    <div id="result" class="card" aria-live="polite">
+        <div class="small">No scan performed yet.</div>
+    </div>
+
+    <div class="controls">
+        <button id="copyBtn" class="btn-ghost">Copy report</button>
+        <button id="clearBtn" class="btn-ghost">Clear</button>
+    </div>
+
+    <div class="footer">v2.0 &middot; <span style="color:var(--brand1)">AI Protection</span></div>
+
     <script src="popup.js"></script>
 </body>
 </html>

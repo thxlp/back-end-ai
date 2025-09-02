@@ -36,7 +36,7 @@ async function sendEmailToAPI(emailContent) {
         return;
     }
 
-const API_URL = "https://web-production-a4be2.up.railway.app/predict_phishing"; 
+const API_URL = "https://web-production-e189e.up.railway.app/predict_phishing"; 
 
     try {
         console.log("Sending request to:", API_URL);

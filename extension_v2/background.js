@@ -6,3 +6,9 @@ chrome.runtime.onMessage.addListener(
         return true;
     }
 );
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === "test") {
+    sendResponse({result: "ok"});
+  }
+});
