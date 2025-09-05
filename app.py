@@ -17,19 +17,20 @@ CORS(app, resources={
     }
 })
 
-# ตรวจสอบและดาวน์โหลดทรัพยากร NLTK ที่จำเป็น
+# ตรวจสอบทรัพยากร NLTK ที่จำเป็นแบบไม่พยายามดาวน์โหลด (เพื่อให้สตาร์ทเร็วขึ้นบน Railway)
+has_stopwords = False
+has_wordnet = False
 try:
     nltk.data.find('corpora/stopwords')
+    has_stopwords = True
 except LookupError:
-    nltk.download('stopwords', quiet=True)
+    has_stopwords = False
 try:
     nltk.data.find('corpora/wordnet')
-except LookupError:
-    nltk.download('wordnet', quiet=True)
-try:
     nltk.data.find('corpora/omw-1.4')
+    has_wordnet = True
 except LookupError:
-    nltk.download('omw-1.4', quiet=True)
+    has_wordnet = False
 
 # ฟังก์ชันสำหรับประมวลผลข้อความ
 def preprocess_text(text):
@@ -43,10 +44,12 @@ def preprocess_text(text):
     text = re.sub(r'\n', '', text)
     text = re.sub(r'\w*\d\w*', '', text)
     text = re.sub(r'\s+', ' ', text).strip()
-    stop_words = set(stopwords.words('english'))
-    text = ' '.join([word for word in text.split() if word not in stop_words])
-    lemmatizer = WordNetLemmatizer()
-    text = ' '.join([lemmatizer.lemmatize(word) for word in text.split()])
+    if has_stopwords:
+        stop_words = set(stopwords.words('english'))
+        text = ' '.join([word for word in text.split() if word not in stop_words])
+    if has_wordnet:
+        lemmatizer = WordNetLemmatizer()
+        text = ' '.join([lemmatizer.lemmatize(word) for word in text.split()])
     return text
 
 model = None
