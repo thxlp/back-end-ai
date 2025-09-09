@@ -54,8 +54,8 @@ def preprocess_text(text):
 
 model = None
 tfidf_vectorizer = None
-model_path = 'phishing_detector_updated.joblib'
-vectorizer_path = 'tfidf_vectorizer_updated.joblib'
+model_path = 'best_logisticregression_model.joblib'
+vectorizer_path = 'best_logisticregression_vectorizer.joblib'
 
 # โหลดโมเดลและ Vectorizer จากไฟล์
 try:
