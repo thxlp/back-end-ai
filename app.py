@@ -91,6 +91,19 @@ def load_model_with_fallback():
     except Exception as e:
         print(f"Error loading fallback model: {e}")
     
+    # Final fallback: try simple fallback model
+    try:
+        fallback_model_path = 'fallback_model.joblib'
+        fallback_vectorizer_path = 'fallback_vectorizer.joblib'
+        if os.path.exists(fallback_model_path) and os.path.exists(fallback_vectorizer_path):
+            print("Trying simple fallback model...")
+            model = joblib.load(fallback_model_path)
+            tfidf_vectorizer = joblib.load(fallback_vectorizer_path)
+            print("Simple fallback model loaded successfully.")
+            return True
+    except Exception as e:
+        print(f"Error loading simple fallback model: {e}")
+    
     print("All model loading attempts failed.")
     return False
 
