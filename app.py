@@ -58,35 +58,65 @@ model_path = 'best_logisticregression_model.joblib'
 vectorizer_path = 'best_logisticregression_vectorizer.joblib'
 
 # โหลดโมเดลและ Vectorizer จากไฟล์
-try:
-    if os.path.exists(model_path) and os.path.exists(vectorizer_path):
-        print(f"Loading model from: {model_path}")
-        print(f"Loading vectorizer from: {vectorizer_path}")
-        model = joblib.load(model_path)
-        tfidf_vectorizer = joblib.load(vectorizer_path)
-        print("Model and vectorizer loaded successfully.")
-        print(f"Model type: {type(model)}")
-        print(f"Vectorizer type: {type(tfidf_vectorizer)}")
-    else:
-        print(f"Model file exists: {os.path.exists(model_path)}")
-        print(f"Vectorizer file exists: {os.path.exists(vectorizer_path)}")
-        print("Model or vectorizer files not found. Please ensure they are in the same directory.")
-except Exception as e:
-    print(f"Error loading model or vectorizer: {e}")
-    print(f"Error type: {type(e)}")
-    import traceback
-    traceback.print_exc()
+def load_model_with_fallback():
+    global model, tfidf_vectorizer
+    
+    # Try loading the main model files
+    try:
+        if os.path.exists(model_path) and os.path.exists(vectorizer_path):
+            print(f"Loading model from: {model_path}")
+            print(f"Loading vectorizer from: {vectorizer_path}")
+            model = joblib.load(model_path)
+            tfidf_vectorizer = joblib.load(vectorizer_path)
+            print("Model and vectorizer loaded successfully.")
+            print(f"Model type: {type(model)}")
+            print(f"Vectorizer type: {type(tfidf_vectorizer)}")
+            return True
+    except Exception as e:
+        print(f"Error loading main model: {e}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+    
+    # Fallback: try old model files
+    try:
+        old_model_path = 'phishing_detector_updated.joblib'
+        old_vectorizer_path = 'tfidf_vectorizer_updated.joblib'
+        if os.path.exists(old_model_path) and os.path.exists(old_vectorizer_path):
+            print("Trying fallback model files...")
+            model = joblib.load(old_model_path)
+            tfidf_vectorizer = joblib.load(old_vectorizer_path)
+            print("Fallback model loaded successfully.")
+            return True
+    except Exception as e:
+        print(f"Error loading fallback model: {e}")
+    
+    print("All model loading attempts failed.")
+    return False
+
+# Load model on startup
+load_model_with_fallback()
 
 # Health Check Endpoint
 @app.route('/', methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy", "message": "Phishing Detection API is running"})
+    model_status = "loaded" if model is not None and tfidf_vectorizer is not None else "not loaded"
+    return jsonify({
+        "status": "healthy", 
+        "message": "Phishing Detection API is running",
+        "model_status": model_status,
+        "model_type": str(type(model)) if model else None,
+        "vectorizer_type": str(type(tfidf_vectorizer)) if tfidf_vectorizer else None
+    })
 
 # Prediction Endpoint
 @app.route('/predict_phishing', methods=['POST'])
 def predict_phishing():
+    # Try to reload model if not loaded
     if model is None or tfidf_vectorizer is None:
-        return jsonify({"error": "Model or vectorizer not loaded. Server error."}), 500
+        print("Model not loaded, attempting to reload...")
+        if not load_model_with_fallback():
+            return jsonify({"error": "Model or vectorizer not loaded. Server error."}), 500
     
     data = request.get_json()
     email_content = data.get('email_content')
