@@ -60,13 +60,22 @@ vectorizer_path = 'best_logisticregression_vectorizer.joblib'
 # โหลดโมเดลและ Vectorizer จากไฟล์
 try:
     if os.path.exists(model_path) and os.path.exists(vectorizer_path):
+        print(f"Loading model from: {model_path}")
+        print(f"Loading vectorizer from: {vectorizer_path}")
         model = joblib.load(model_path)
         tfidf_vectorizer = joblib.load(vectorizer_path)
         print("Model and vectorizer loaded successfully.")
+        print(f"Model type: {type(model)}")
+        print(f"Vectorizer type: {type(tfidf_vectorizer)}")
     else:
+        print(f"Model file exists: {os.path.exists(model_path)}")
+        print(f"Vectorizer file exists: {os.path.exists(vectorizer_path)}")
         print("Model or vectorizer files not found. Please ensure they are in the same directory.")
 except Exception as e:
     print(f"Error loading model or vectorizer: {e}")
+    print(f"Error type: {type(e)}")
+    import traceback
+    traceback.print_exc()
 
 # Health Check Endpoint
 @app.route('/', methods=['GET'])
