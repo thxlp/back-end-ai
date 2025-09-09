@@ -107,8 +107,13 @@ def load_model_with_fallback():
     print("All model loading attempts failed.")
     return False
 
-# Load model on startup
-load_model_with_fallback()
+# Load model on startup (async to avoid blocking)
+import threading
+def load_model_async():
+    load_model_with_fallback()
+
+# Start model loading in background thread
+threading.Thread(target=load_model_async, daemon=True).start()
 
 # Health Check Endpoint
 @app.route('/', methods=['GET'])
