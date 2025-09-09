@@ -110,21 +110,20 @@ def load_model_with_fallback():
 # Load model on startup (async to avoid blocking)
 import threading
 def load_model_async():
-    load_model_with_fallback()
+    try:
+        load_model_with_fallback()
+    except Exception as e:
+        print(f"Background model loading failed: {e}")
 
 # Start model loading in background thread
 threading.Thread(target=load_model_async, daemon=True).start()
 
-# Health Check Endpoint
+# Health Check Endpoint - Always return healthy immediately
 @app.route('/', methods=['GET'])
 def health_check():
-    model_status = "loaded" if model is not None and tfidf_vectorizer is not None else "not loaded"
     return jsonify({
         "status": "healthy", 
-        "message": "Phishing Detection API is running",
-        "model_status": model_status,
-        "model_type": str(type(model)) if model else None,
-        "vectorizer_type": str(type(tfidf_vectorizer)) if tfidf_vectorizer else None
+        "message": "Phishing Detection API is running"
     })
 
 # Prediction Endpoint
