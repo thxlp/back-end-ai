@@ -6,14 +6,12 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "https://web-production-e189e.up.railway.app/*",
     "https://*.mail.google.com/*",
     "https://outlook.live.com/*",
-    "https://outlook.office.com/*",
     "https://mail.yahoo.com/*"
   ],
   "background": {
