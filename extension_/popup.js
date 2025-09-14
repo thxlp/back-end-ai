@@ -37,39 +37,76 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!tabs || !tabs[0]) {
                 setBusy(false);
                 resultDiv.innerHTML = '<div class="small">No active tab found or insufficient permissions.</div>';
-                return;
             }
             const tab = tabs[0];
-            const trySend = (attemptsLeft = 1) => {
+            console.log('Current tab URL:', tab.url);
+            console.log('Current tab ID:', tab.id);
+            
+            // Check if tab is ready
+            if (tab.status !== 'complete') {
+                setBusy(false);
+                resultDiv.innerHTML = '<div class="small">Page is still loading. Please wait and try again.</div>';
+                return;
+            }
+            const trySend = (attemptsLeft = 3) => {
+                console.log(`Attempting to send message, attempts left: ${attemptsLeft}`);
+                
+                // First, check if we're on a supported email site
+                const isSupportedSite = tab.url.includes('mail.google.com') || 
+                                      tab.url.includes('outlook.live.com') || 
+                                      tab.url.includes('outlook.office.com') || 
+                                      tab.url.includes('mail.yahoo.com');
+                
+                if (!isSupportedSite) {
+                    setBusy(false);
+                    resultDiv.innerHTML = '<div class="small">Please navigate to Gmail, Outlook, or Yahoo Mail to scan emails.</div>';
+                    return;
+                }
+                
+                // Try to inject content script if it doesn't exist
+                if (attemptsLeft === 3) {
+                    statusText.textContent = 'Checking content script...';
+                    chrome.scripting.executeScript({ 
+                        target: { tabId: tab.id }, 
+                        files: ['content.js'] 
+                    }).then(() => {
+                        console.log('Content script injected successfully');
+                        setTimeout(() => trySend(attemptsLeft - 1), 1000);
+                    }).catch((err) => {
+                        console.log('Content script already exists or injection failed:', err);
+                        setTimeout(() => trySend(attemptsLeft - 1), 500);
+                    });
+                    return;
+                }
+                
                 chrome.tabs.sendMessage(tab.id, { type: 'scan_email' }, (response) => {
                     if (chrome.runtime.lastError) {
                         const msg = chrome.runtime.lastError.message || '';
                         console.warn('sendMessage failed:', msg);
+                        
                         if (msg.includes('Receiving end does not exist') && attemptsLeft > 0) {
-                            statusText.textContent = 'Injecting helper...';
-                            chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] }).then(() => {
-                                setTimeout(() => trySend(attemptsLeft - 1), 250);
-                            }).catch((err) => {
-                                console.error('Injection failed:', err);
-                                setBusy(false);
-                                resultDiv.innerHTML = `<div class="small">Failed to inject content script: ${err.message}</div>`;
-                            });
+                            statusText.textContent = 'Retrying...';
+                            console.log('Content script not ready, retrying...');
+                            setTimeout(() => trySend(attemptsLeft - 1), 1000);
                         } else {
                             setBusy(false);
-                            resultDiv.innerHTML = `<div class="small">Extension error: ${msg}</div>`;
+                            resultDiv.innerHTML = `<div class="small">Could not connect to content script. Please refresh the page and try again.</div>`;
                         }
                         return;
                     }
+                    
                     // If no runtime.lastError, wait for content script to send result via runtime.sendMessage
+                    console.log('Message sent successfully, waiting for response...');
                     statusText.textContent = 'Waiting for result...';
                 });
             };
-            trySend(1);
+            trySend(3);
         });
     });
 
     // Receive results from content script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        console.log('Received message:', message);
         if (message.type === 'phishing_result') {
             setBusy(false);
             statusText.textContent = 'Scan complete';
@@ -80,6 +117,24 @@ document.addEventListener('DOMContentLoaded', () => {
             resultDiv.innerHTML = `<div class="small">API Error: ${message.error}</div>`;
         }
     });
+    
+    // Add timeout for scan operation
+    let scanTimeout;
+    const originalSetBusy = setBusy;
+    setBusy = (busy) => {
+        if (busy) {
+            scanTimeout = setTimeout(() => {
+                setBusy(false);
+                resultDiv.innerHTML = '<div class="small">Scan timeout. Please try again.</div>';
+            }, 30000); // 30 second timeout
+        } else {
+            if (scanTimeout) {
+                clearTimeout(scanTimeout);
+                scanTimeout = null;
+            }
+        }
+        originalSetBusy(busy);
+    };
 
     copyBtn.addEventListener('click', () => {
         if (!lastReportText) return;

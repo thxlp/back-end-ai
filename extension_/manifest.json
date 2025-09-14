@@ -6,12 +6,14 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://web-production-e189e.up.railway.app/*",
     "https://*.mail.google.com/*",
     "https://outlook.live.com/*",
+    "https://outlook.office.com/*",
     "https://mail.yahoo.com/*"
   ],
   "background": {
@@ -34,8 +36,9 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://mail.google.com/*", "*://outlook.live.com/*", "*://mail.yahoo.com/*"],
-      "js": ["content.js"]
+      "matches": ["*://mail.google.com/*", "*://outlook.live.com/*", "*://outlook.office.com/*", "*://mail.yahoo.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
     }
   ]
 }
