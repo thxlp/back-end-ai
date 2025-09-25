@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python simple_app.py",
+    "startCommand": "bash start.sh",
     "healthcheckPath": "/",
     "healthcheckTimeout": 180,
     "restartPolicyType": "ON_FAILURE",
