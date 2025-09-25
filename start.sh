@@ -25,7 +25,7 @@ finally:
 PY
 
 echo "=== Starting server ==="
-exec gunicorn \
+exec python -m gunicorn \
   --workers 1 \
   --threads 2 \
   --worker-class gthread \
