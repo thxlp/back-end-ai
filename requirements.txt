@@ -3,6 +3,7 @@ flask-cors==4.0.0
 joblib==1.3.2
 nltk==3.8.1
 scikit-learn==1.7.0
-numpy>=1.24.3
-pandas==1.5.3
-gunicorn==21.2.0 
+# Ensure binary compatibility between NumPy and Pandas at runtime
+numpy>=2.0,<3
+pandas==2.2.2
+gunicorn==21.2.0
