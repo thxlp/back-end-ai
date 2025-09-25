@@ -126,6 +126,11 @@ def health_check():
         "message": "Phishing Detection API is running"
     })
 
+# Suppress automatic browser request for favicon to avoid 404 logs
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
 # Prediction Endpoint
 @app.route('/predict_phishing', methods=['POST'])
 def predict_phishing():
