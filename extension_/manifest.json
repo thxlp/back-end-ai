@@ -9,7 +9,7 @@
     "storage"
   ],
   "host_permissions": [
-    "https://web-production-e189e.up.railway.app/*",
+    "https://web-production-ac17.up.railway.app/*",
     "https://*.mail.google.com/*",
     "https://outlook.live.com/*",
     "https://mail.yahoo.com/*"
