@@ -25,5 +25,13 @@ finally:
 PY
 
 echo "=== Starting server ==="
-exec gunicorn -w 2 -k gthread -b 0.0.0.0:${PORT:-5000} app:app
+exec gunicorn \
+  --workers 2 \
+  --threads 4 \
+  --timeout 120 \
+  --graceful-timeout 30 \
+  --access-logfile '-' \
+  --error-logfile '-' \
+  --bind 0.0.0.0:${PORT:-5000} \
+  app:app
 

@@ -126,6 +126,13 @@ def health_check():
         "message": "Phishing Detection API is running"
     })
 
+# Dedicated health endpoint for platform health checks
+@app.route('/healthz', methods=['GET'])
+def healthz():
+    return jsonify({
+        "status": "healthy"
+    })
+
 # Suppress automatic browser request for favicon to avoid 404 logs
 @app.route('/favicon.ico')
 def favicon():
