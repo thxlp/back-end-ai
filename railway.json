@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "gunicorn app:app --bind 0.0.0.0:$PORT -k gthread --workers 1 --threads 4 --timeout 180 --log-level info --access-logfile - --error-logfile -",
+    "startCommand": "gunicorn simple_app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 180 --log-level info --access-logfile - --error-logfile -",
     "healthcheckPath": "/",
     "healthcheckTimeout": 180,
     "restartPolicyType": "ON_FAILURE",
