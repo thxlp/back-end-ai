@@ -26,10 +26,12 @@ PY
 
 echo "=== Starting server ==="
 exec gunicorn \
-  --workers 2 \
-  --threads 4 \
+  --workers 1 \
+  --threads 2 \
+  --worker-class gthread \
   --timeout 120 \
   --graceful-timeout 30 \
+  --log-level info \
   --access-logfile '-' \
   --error-logfile '-' \
   --bind 0.0.0.0:${PORT:-5000} \
