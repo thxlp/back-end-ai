@@ -54,57 +54,72 @@ def preprocess_text(text):
 
 model = None
 tfidf_vectorizer = None
-model_path = 'best_logisticregression_model.joblib'
-vectorizer_path = 'best_logisticregression_vectorizer.joblib'
+current_model_name = None
+
+# รายการไฟล์ model ทั้งหมดที่มีอยู่
+model_configs = [
+    {
+        'name': 'best_logisticregression',
+        'model_path': 'best_logisticregression_model.joblib',
+        'vectorizer_path': 'best_logisticregression_vectorizer.joblib'
+    },
+    {
+        'name': 'fallback',
+        'model_path': 'fallback_model.joblib',
+        'vectorizer_path': 'fallback_vectorizer.joblib'
+    },
+    {
+        'name': 'phishing_detector_updated',
+        'model_path': 'phishing_detector_updated.joblib',
+        'vectorizer_path': 'tfidf_vectorizer_updated.joblib'
+    }
+]
 
 # โหลดโมเดลและ Vectorizer จากไฟล์
 def load_model_with_fallback():
-    global model, tfidf_vectorizer
+    global model, tfidf_vectorizer, current_model_name
     
-    # Try loading the main model files
-    try:
-        if os.path.exists(model_path) and os.path.exists(vectorizer_path):
-            print(f"Loading model from: {model_path}")
-            print(f"Loading vectorizer from: {vectorizer_path}")
-            model = joblib.load(model_path)
-            tfidf_vectorizer = joblib.load(vectorizer_path)
-            print("Model and vectorizer loaded successfully.")
-            print(f"Model type: {type(model)}")
-            print(f"Vectorizer type: {type(tfidf_vectorizer)}")
-            return True
-    except Exception as e:
-        print(f"Error loading main model: {e}")
-        print(f"Error type: {type(e)}")
-        import traceback
-        traceback.print_exc()
+    # ลองโหลดทุกไฟล์ model ตามลำดับ
+    for config in model_configs:
+        model_path = config['model_path']
+        vectorizer_path = config['vectorizer_path']
+        model_name = config['name']
+        
+        try:
+            if os.path.exists(model_path) and os.path.exists(vectorizer_path):
+                print(f"Attempting to load {model_name} model...")
+                print(f"Model file: {model_path}")
+                print(f"Vectorizer file: {vectorizer_path}")
+                
+                model = joblib.load(model_path)
+                tfidf_vectorizer = joblib.load(vectorizer_path)
+                current_model_name = model_name
+                
+                print(f"✅ {model_name} model loaded successfully!")
+                print(f"Model type: {type(model)}")
+                print(f"Vectorizer type: {type(tfidf_vectorizer)}")
+                
+                # ทดสอบว่า model ทำงานได้หรือไม่
+                try:
+                    test_text = "test email content"
+                    test_processed = preprocess_text(test_text)
+                    test_vector = tfidf_vectorizer.transform([test_processed])
+                    test_prediction = model.predict(test_vector)
+                    test_proba = model.predict_proba(test_vector)
+                    print(f"✅ Model test successful - prediction: {test_prediction[0]}")
+                    return True
+                except Exception as test_error:
+                    print(f"❌ Model test failed: {test_error}")
+                    continue
+                    
+        except Exception as e:
+            print(f"❌ Error loading {model_name} model: {e}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            traceback.print_exc()
+            continue
     
-    # Fallback: try old model files
-    try:
-        old_model_path = 'phishing_detector_updated.joblib'
-        old_vectorizer_path = 'tfidf_vectorizer_updated.joblib'
-        if os.path.exists(old_model_path) and os.path.exists(old_vectorizer_path):
-            print("Trying fallback model files...")
-            model = joblib.load(old_model_path)
-            tfidf_vectorizer = joblib.load(old_vectorizer_path)
-            print("Fallback model loaded successfully.")
-            return True
-    except Exception as e:
-        print(f"Error loading fallback model: {e}")
-    
-    # Final fallback: try simple fallback model
-    try:
-        fallback_model_path = 'fallback_model.joblib'
-        fallback_vectorizer_path = 'fallback_vectorizer.joblib'
-        if os.path.exists(fallback_model_path) and os.path.exists(fallback_vectorizer_path):
-            print("Trying simple fallback model...")
-            model = joblib.load(fallback_model_path)
-            tfidf_vectorizer = joblib.load(fallback_vectorizer_path)
-            print("Simple fallback model loaded successfully.")
-            return True
-    except Exception as e:
-        print(f"Error loading simple fallback model: {e}")
-    
-    print("All model loading attempts failed.")
+    print("❌ All model loading attempts failed.")
     return False
 
 # Load model on startup (async to avoid blocking)
@@ -142,10 +157,17 @@ def predict_phishing():
         return jsonify({"error": "'email_content' not provided in request body."}), 400
     
     processed_content = preprocess_text(email_content)
+    print(f"Original content: {email_content[:100]}...")
+    print(f"Processed content: {processed_content}")
+    
     vectorized_content = tfidf_vectorizer.transform([processed_content])
+    print(f"Vector shape: {vectorized_content.shape}")
+    print(f"Non-zero features: {vectorized_content.nnz}")
     
     prediction = model.predict(vectorized_content)[0]
     prediction_proba = model.predict_proba(vectorized_content)[0].tolist()
+    print(f"Raw prediction: {prediction}")
+    print(f"Raw probabilities: {prediction_proba}")
     
     # กำหนดผลลัพธ์จากค่าทำนาย
     # คุณต้องแน่ใจว่าค่า 0 และ 1 ตรงกับ 'Not Phishing' และ 'Phishing'
@@ -167,7 +189,15 @@ def predict_phishing():
     return jsonify({
         "prediction": result,
         "confidence": f"{confidence_phishing:.4f}",
-        "risk_level": risk_level
+        "risk_level": risk_level,
+        "model_used": current_model_name or "unknown",
+        "debug_info": {
+            "original_length": len(email_content),
+            "processed_length": len(processed_content),
+            "vector_features": vectorized_content.nnz,
+            "raw_prediction": int(prediction),
+            "raw_probabilities": prediction_proba
+        }
     })
 
 if __name__ == '__main__':
